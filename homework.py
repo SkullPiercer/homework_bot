@@ -60,7 +60,7 @@ def get_api_answer(timestamp='0'):
     try:
         payload = {'from_date': timestamp}
         response = requests.get(ENDPOINT, headers=HEADERS, params=payload).json()
-        return response
+        return response['homeworks'][0]
     except Exception as e:
         logging.error(f'Ошибка при запросе к API: {e}')
 
@@ -80,8 +80,8 @@ def check_response(response):
 
 
 def parse_status(homework):
-    ...
-
+    homework_name = homework['homework_name']
+    verdict = homework['status']
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
@@ -104,11 +104,13 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             ...
-        ...
+
+        bot.polling(none_stop=True, interval=RETRY_PERIOD)
 
 
 if __name__ == '__main__':
     # main()
     data = get_api_answer()
-    print(len(data['homeworks']))
-    print(check_response(data['homeworks'][0]))
+    print(data)
+    print(len(data))
+    print(check_response(data))
