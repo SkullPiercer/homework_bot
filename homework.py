@@ -27,9 +27,10 @@ def check_tokens():
     """Проверка доступности переменных окружения"""
 
     tokens = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
-    if None in tokens:
-        # Место для лога
-        return False
+    for token in tokens:
+        if token is None:
+            logging.critical(f'Отсутствует обязательная переменная окружения `{token}`')
+            return False
     return True
 
 
