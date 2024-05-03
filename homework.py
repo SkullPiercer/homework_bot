@@ -30,11 +30,13 @@ def check_tokens():
 
 
 def send_message(bot, message):
+    """Отправляет сообщение в Telegram-чат, определяемый константой."""
+
     bot.send_message(
         chat_id=TELEGRAM_CHAT_ID,
         text=message
     )
-    #Место для лога
+    # Место для лога
 
 
 def get_api_answer(timestamp='0'):
@@ -59,6 +61,7 @@ def check_response(response):
             print(data)
             return False
     return True
+
 
 def parse_status(homework):
     ...
