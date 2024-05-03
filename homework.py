@@ -6,6 +6,13 @@ import requests
 from dotenv import load_dotenv
 from telebot import TeleBot
 
+
+logging.basicConfig(
+    filename='bot_log.log',
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
 load_dotenv()
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
@@ -104,4 +111,4 @@ if __name__ == '__main__':
     # main()
     data = get_api_answer()
     print(len(data['homeworks']))
-    print(check_response(data))
+    print(check_response(data['homeworks'][0]))
