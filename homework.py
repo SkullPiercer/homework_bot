@@ -1,6 +1,11 @@
+import logging
+import time
 import os
 import requests
+
 from dotenv import load_dotenv
+from telebot import TeleBot
+
 
 load_dotenv()
 
@@ -41,11 +46,13 @@ def send_message(bot, message):
 
 def get_api_answer(timestamp='0'):
     """Запрос к эндпоинту API-сервиса."""
+    try:
+        payload = {'from_date': timestamp}
+        response = requests.get(ENDPOINT, headers=HEADERS, params=payload).json()
+        return response
+    except Exception as e:
+        logging.error(f'Ошибка при запросе к API: {e}')
 
-    payload = {'from_date': timestamp}
-    response = requests.get(ENDPOINT, headers=HEADERS, params=payload).json()
-    # Лог на получение словаря
-    return response
 
 
 def check_response(response):
@@ -69,26 +76,26 @@ def parse_status(homework):
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
-# def main():
-#     """Основная логика работы бота."""
-#
-#     ...
-#
-#     # Создаем объект класса бота
-#     bot = ...
-#     timestamp = int(time.time())
-#
-#     ...
-#
-#     while True:
-#         try:
-#
-#             ...
-#
-#         except Exception as error:
-#             message = f'Сбой в работе программы: {error}'
-#             ...
-#         ...
+def main():
+    """Основная логика работы бота."""
+
+    ...
+
+    # Создаем объект класса бота
+    bot = TeleBot(token=TELEGRAM_TOKEN)
+    timestamp = int(time.time())
+
+    ...
+
+    while True:
+        try:
+
+            ...
+
+        except Exception as error:
+            message = f'Сбой в работе программы: {error}'
+            ...
+        ...
 
 
 if __name__ == '__main__':
