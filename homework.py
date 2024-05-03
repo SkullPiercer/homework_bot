@@ -20,7 +20,7 @@ HOMEWORK_VERDICTS = {
 
 
 def check_tokens():
-    """Проверка доступности переменных окружения"""
+    """Проверка доступности переменных окружения."""
 
     tokens = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
     if None in tokens:
@@ -34,10 +34,12 @@ def send_message(bot, message):
 
 
 def get_api_answer(timestamp='0'):
+    """Запрос к эндпоинту API-сервиса."""
+
     payload = {'from_date': timestamp}
-    response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
+    response = requests.get(ENDPOINT, headers=HEADERS, params=payload).json()
     # Лог на тип дикт и на ключ error
-    return response.json()
+    return response
 
 
 def check_response(response):
