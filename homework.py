@@ -6,7 +6,6 @@ import requests
 from dotenv import load_dotenv
 from telebot import TeleBot
 
-
 load_dotenv()
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
@@ -37,15 +36,19 @@ def check_tokens():
 def send_message(bot, message):
     """Отправляет сообщение в Telegram-чат, определяемый константой."""
 
-    bot.send_message(
-        chat_id=TELEGRAM_CHAT_ID,
-        text=message
-    )
-    # Место для лога
+    try:
+        bot.send_message(
+            chat_id=TELEGRAM_CHAT_ID,
+            text=message
+        )
+        logging.debug('Удачная отправка сообщения')
+    except Exception as e:
+        logging.error('Сбой при отправке сообщения')
 
 
 def get_api_answer(timestamp='0'):
     """Запрос к эндпоинту API-сервиса."""
+
     try:
         payload = {'from_date': timestamp}
         response = requests.get(ENDPOINT, headers=HEADERS, params=payload).json()
@@ -63,7 +66,7 @@ def check_response(response):
     )
     for data in required_data:
         if data not in response:
-            logging.error('отсутствие ожидаемых ключей в ответе API')
+            logging.error('Отсутствие ожидаемых ключей в ответе API')
             return False
     return True
 
