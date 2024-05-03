@@ -54,7 +54,6 @@ def get_api_answer(timestamp='0'):
         logging.error(f'Ошибка при запросе к API: {e}')
 
 
-
 def check_response(response):
     """Проверяет ответ API на соответствие."""
 
@@ -64,8 +63,7 @@ def check_response(response):
     )
     for data in required_data:
         if data not in response:
-            # Место для лога
-            print(data)
+            logging.error('отсутствие ожидаемых ключей в ответе API')
             return False
     return True
 
