@@ -20,7 +20,7 @@ HOMEWORK_VERDICTS = {
 
 
 def check_tokens():
-    """Проверка доступности переменных окружения."""
+    """Проверка доступности переменных окружения"""
 
     tokens = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
     if None in tokens:
@@ -30,7 +30,11 @@ def check_tokens():
 
 
 def send_message(bot, message):
-    ...
+    bot.send_message(
+        chat_id=TELEGRAM_CHAT_ID,
+        text=message
+    )
+    #Место для лога
 
 
 def get_api_answer(timestamp='0'):
@@ -38,13 +42,23 @@ def get_api_answer(timestamp='0'):
 
     payload = {'from_date': timestamp}
     response = requests.get(ENDPOINT, headers=HEADERS, params=payload).json()
-    # Лог на тип дикт и на ключ error
+    # Лог на получение словаря
     return response
 
 
 def check_response(response):
-    ...
+    """Проверяет ответ API на соответствие."""
 
+    required_data = (
+        'id', 'status', 'homework_name',
+        'reviewer_comment', 'date_updated', 'lesson_name'
+    )
+    for data in required_data:
+        if data not in response:
+            # Место для лога
+            print(data)
+            return False
+    return True
 
 def parse_status(homework):
     ...
@@ -76,4 +90,6 @@ def parse_status(homework):
 
 if __name__ == '__main__':
     # main()
-    print(get_api_answer())
+    data = get_api_answer()
+    print(len(data['homeworks']))
+    print(check_response(data))
