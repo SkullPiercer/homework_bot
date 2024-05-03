@@ -1,5 +1,5 @@
 import os
-
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,6 +24,7 @@ def check_tokens():
 
     tokens = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
     if None in tokens:
+        # Место для лога
         return False
     return True
 
@@ -32,8 +33,11 @@ def send_message(bot, message):
     ...
 
 
-def get_api_answer(timestamp):
-    ...
+def get_api_answer(timestamp='0'):
+    payload = {'from_date': timestamp}
+    response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
+    # Лог на тип дикт и на ключ error
+    return response.json()
 
 
 def check_response(response):
@@ -70,4 +74,4 @@ def parse_status(homework):
 
 if __name__ == '__main__':
     # main()
-    print(check_tokens())
+    print(get_api_answer())
