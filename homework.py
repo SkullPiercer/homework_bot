@@ -6,6 +6,8 @@ import requests
 from dotenv import load_dotenv
 from telebot import TeleBot
 
+from exceptions import HomeworkKeyError
+
 
 logging.basicConfig(
     filename='bot_log.log',
@@ -56,13 +58,15 @@ def send_message(bot, message):
 
 def get_api_answer(timestamp='0'):
     """Запрос к эндпоинту API-сервиса."""
-
+    result = {}
     try:
         payload = {'from_date': timestamp}
         response = requests.get(ENDPOINT, headers=HEADERS, params=payload).json()
-        return response['homeworks'][0]
+        result = response['homeworks'][0]
     except Exception as e:
         logging.error(f'Ошибка при запросе к API: {e}')
+    finally:
+        return result
 
 
 def check_response(response):
@@ -72,6 +76,9 @@ def check_response(response):
         'id', 'status', 'homework_name',
         'reviewer_comment', 'date_updated', 'lesson_name'
     )
+
+    if not isinstance(response, list) or not isinstance(response, dict):
+        raise TypeError
     for data in required_data:
         if data not in response:
             logging.error('Отсутствие ожидаемых ключей в ответе API')
@@ -80,7 +87,11 @@ def check_response(response):
 
 
 def parse_status(homework):
-    homework_name = homework['homework_name']
+    """Извлекает из информации статус работы."""
+
+    homework_name = homework.get('homework_name')
+    if not homework_name:
+        raise HomeworkKeyError
     verdict = homework['status']
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
@@ -90,7 +101,6 @@ def main():
 
     ...
 
-    # Создаем объект класса бота
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
 
