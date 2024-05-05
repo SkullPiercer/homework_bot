@@ -1,7 +1,9 @@
+import json
 import logging
 import time
 import os
 import requests
+from http import HTTPStatus
 
 from dotenv import load_dotenv
 from telebot import TeleBot
@@ -50,21 +52,31 @@ def send_message(bot, message):
         logging.error('Сбой при отправке сообщения')
 
 
-def get_api_answer(timestamp='0'):
+def get_api_answer(timestamp):
     """Запрос к эндпоинту API-сервиса."""
-    result = {}
-    try:
-        payload = {'from_date': timestamp}
-        response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
-        print(response.status_code)
-        if response.status_code in [400, 401]:
-            raise ApiCodeError
-        result = response.json()['homeworks'][0]
-    except Exception as e:
-        logging.error(f'Ошибка при запросе к API: {e}')
-    finally:
-        return result
 
+    try:
+        response = requests.get(
+            ENDPOINT,
+            headers=HEADERS,
+            params={'from_date': timestamp},
+            timeout=10
+        )
+        if response.status_code == HTTPStatus.OK:
+            logging.info("API недоступно")
+            try:
+                response = response.json()
+                logging.info('Данные успешно получены')
+                return response
+            except json.decoder.JSONDecodeError as err:
+                msg = 'Ошибка получения данных'
+                logging.error('%s: %s', msg, err)
+                raise json.decoder.JSONDecodeError(f'{msg}')
+        else:
+            logging.error('Неверные данные ключей ответа')
+            raise ApiCodeError
+    except requests.exceptions.RequestException as err:
+        logging.error('API недоступно')
 
 def check_response(response):
     """Проверяет ответ API на соответствие."""
@@ -121,7 +133,7 @@ def main():
                 check_response(api_response)
                 message = parse_status(api_response)
                 send_message(bot, message)
-                timestamp = int(time.time())  # Update timestamp
+                timestamp = int(time.time())
             else:
                 logging.debug('Отсутствие в ответе новых статусов')
         except Exception as error:
