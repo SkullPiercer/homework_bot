@@ -1,7 +1,7 @@
 import json
 import logging
-import time
 import os
+import time
 import requests
 from http import HTTPStatus
 
@@ -78,16 +78,17 @@ def get_api_answer(timestamp):
     except requests.exceptions.RequestException as err:
         logging.error('API недоступно')
 
+
 def check_response(response):
     """Проверяет ответ API на соответствие."""
     required_data = (
         'id', 'status', 'homework_name',
         'reviewer_comment', 'date_updated', 'lesson_name'
     )
-    if not isinstance(response, list) or not isinstance(response, dict):
+    if not isinstance(response['homeworks'], list) or not isinstance(response, dict):
         raise TypeError
     for data in required_data:
-        if data not in response:
+        if data not in response['homeworks'][0]:
             logging.error('Отсутствие ожидаемых ключей в ответе API')
             return False
     return True
@@ -120,6 +121,7 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
+
     if not check_tokens():
         return
 
@@ -129,11 +131,13 @@ def main():
     while True:
         try:
             api_response = get_api_answer(timestamp)
+            if len(api_response['homeworks']) == 0:
+                logging.debug('Получен пустой список с дз')
             if api_response:
-                check_response(api_response)
-                message = parse_status(api_response)
-                send_message(bot, message)
-                timestamp = int(time.time())
+                if check_response(api_response):
+                    message = parse_status(api_response)
+                    send_message(bot, message)
+                    timestamp = int(time.time())
             else:
                 logging.debug('Отсутствие в ответе новых статусов')
         except Exception as error:
@@ -142,4 +146,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    ans = get_api_answer(0)
+    print(ans)
+    print(check_response(ans))
