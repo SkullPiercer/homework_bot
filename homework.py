@@ -35,28 +35,27 @@ HOMEWORK_VERDICTS = {
 
 def check_tokens():
     """Проверка доступности переменных окружения"""
-
     tokens = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
     for token in tokens:
         if token is None:
-            logging.critical(f'Отсутствует обязательная переменная окружения `{token}`')
+            logging.critical(
+                f"Отсутствует обязательная переменная окружения '{token}'"
+            )
             return False
     return True
 
 
 def send_message(bot, message):
     """Отправляет сообщение в Telegram-чат, определяемый константой."""
-
     try:
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         logging.debug('Удачная отправка сообщения')
-    except Exception as e:
+    except Exception:
         logging.error('Сбой при отправке сообщения')
 
 
 def get_api_answer(timestamp):
     """Запрос к эндпоинту API-сервиса."""
-
     try:
         response = requests.get(
             ENDPOINT,
@@ -77,13 +76,12 @@ def get_api_answer(timestamp):
         else:
             logging.error('Неверные данные ключей ответа')
             raise ApiCodeError
-    except requests.exceptions.RequestException as err:
+    except requests.exceptions.RequestException:
         logging.error('API недоступно')
 
 
 def check_response(response):
     """Проверяет ответ API на соответствие."""
-
     if not isinstance(response, dict):
         raise TypeError("Ответ API должен быть словарем")
 
@@ -98,14 +96,15 @@ def check_response(response):
 
     for data in ('status', 'homework_name'):
         if data not in response['homeworks'][0]:
-            raise ValueError(f"Отсутствует ожидаемый ключ '{data}' в ответе API")
+            raise ValueError(
+                f"Отсутствует ожидаемый ключ '{data}' в ответе API"
+            )
 
     return True
 
 
 def parse_status(homework):
     """Извлекает из информации статус работы."""
-
     try:
         homework_name = homework['homework_name']
         verdict = HOMEWORK_VERDICTS[homework.get('status')]
@@ -116,7 +115,6 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
-
     if not check_tokens():
         return
 
