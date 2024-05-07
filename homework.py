@@ -1,14 +1,14 @@
 import json
 import logging
 import os
-import time
 import requests
+import time
 from http import HTTPStatus
 
 from dotenv import load_dotenv
 from telebot import TeleBot
 
-from exceptions import ApiCodeError, HomeworkKeyError
+from exceptions import ApiCodeError
 
 logging.basicConfig(
     filename='bot_log.log',
@@ -35,6 +35,7 @@ HOMEWORK_VERDICTS = {
 
 def check_tokens():
     """Проверка доступности переменных окружения"""
+
     tokens = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
     for token in tokens:
         if token is None:
@@ -45,6 +46,7 @@ def check_tokens():
 
 def send_message(bot, message):
     """Отправляет сообщение в Telegram-чат, определяемый константой."""
+
     try:
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         logging.debug('Удачная отправка сообщения')
@@ -81,41 +83,34 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """Проверяет ответ API на соответствие."""
-    required_data = (
-        'id', 'status', 'homework_name',
-        'reviewer_comment', 'date_updated', 'lesson_name'
-    )
-    if not isinstance(response['homeworks'], list) or not isinstance(response, dict):
-        raise TypeError
-    for data in required_data:
+
+    if not isinstance(response, dict):
+        raise TypeError("Ответ API должен быть словарем")
+
+    if 'homeworks' not in response:
+        raise ApiCodeError("Ответ не содержит 'homeworks'")
+
+    if not isinstance(response['homeworks'], list):
+        raise TypeError("'homeworks' в ответе должен быть списком")
+
+    if not response['homeworks']:
+        raise ValueError("Список 'homeworks' не должен быть пустым")
+
+    for data in ('status', 'homework_name'):
         if data not in response['homeworks'][0]:
-            logging.error('Отсутствие ожидаемых ключей в ответе API')
-            return False
+            raise ValueError(f"Отсутствует ожидаемый ключ '{data}' в ответе API")
+
     return True
 
 
 def parse_status(homework):
     """Извлекает из информации статус работы."""
-    homework_name = homework.get('homework_name')
-    if not homework_name:
-        raise HomeworkKeyError('Не найдено название работы.')
 
-    verdict = homework.get('status')
-
-    if not verdict:
-        raise HomeworkKeyError('Не найден статус работы.')
-
-    lesson_name = homework.get('lesson_name')
-
-    if not lesson_name:
-        raise HomeworkKeyError("Не найдено название урока.")
-
-    if verdict not in HOMEWORK_VERDICTS:
-        raise ValueError(f"Неизвестный статус работы: {verdict}")
-
-    if verdict == 'approved':
-        return 'Работа проверена: ревьюеру всё понравилось. Ура!'
-
+    try:
+        homework_name = homework['homework_name']
+        verdict = HOMEWORK_VERDICTS[homework.get('status')]
+    except KeyError:
+        raise 'Неверный статус домашней работы'
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
@@ -126,7 +121,8 @@ def main():
         return
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time())
+    timestamp = 0
+    last_status = None
 
     while True:
         try:
@@ -135,8 +131,11 @@ def main():
                 logging.debug('Получен пустой список с дз')
             if api_response:
                 if check_response(api_response):
-                    message = parse_status(api_response)
-                    send_message(bot, message)
+                    last_homework = api_response['homeworks'][0]
+                    current_status = parse_status(last_homework)
+                    if last_status != current_status:
+                        send_message(bot, current_status)
+                        last_status = current_status
                     timestamp = int(time.time())
             else:
                 logging.debug('Отсутствие в ответе новых статусов')
@@ -146,6 +145,4 @@ def main():
 
 
 if __name__ == '__main__':
-    ans = get_api_answer(0)
-    print(ans)
-    print(check_response(ans))
+    main()
