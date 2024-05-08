@@ -11,6 +11,7 @@ from telebot import TeleBot
 
 from exceptions import ApiCodeError
 
+
 logging.basicConfig(
     filename='bot_log.log',
     level=logging.DEBUG,
@@ -130,21 +131,19 @@ def main():
     while True:
         try:
             api_response = get_api_answer(timestamp)
-            if len(api_response['homeworks']) == 0:
-                logging.debug('Получен пустой список с дз')
-            if api_response:
-                if check_response(api_response):
-                    last_homework = api_response['homeworks'][0]
-                    current_status = parse_status(last_homework)
-                    if last_status != current_status:
-                        send_message(bot, current_status)
-                        last_status = current_status
-                    timestamp = int(time.time())
-            else:
-                logging.debug('Отсутствие в ответе новых статусов')
+            if check_response(api_response):
+                if not api_response['homeworks']:
+                    logging.debug('Получен пустой список с дз')
+                last_homework = api_response['homeworks'][0]
+                current_status = parse_status(last_homework)
+                if last_status != current_status:
+                    send_message(bot, current_status)
+                    last_status = current_status
+                timestamp = int(time.time())
         except Exception as error:
             logging.error(f'Сбой в работе программы: {error}')
-        time.sleep(RETRY_PERIOD)
+        finally:
+            time.sleep(RETRY_PERIOD)
 
 
 if __name__ == '__main__':
