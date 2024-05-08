@@ -80,7 +80,7 @@ def get_api_answer(timestamp):
             response = response.json()
             logging.info('Данные успешно получены')
             return response
-        except json.decoder.JSONDecodeError as err:
+        except json.decoder.JSONDecodeError:
             msg = 'Ошибка получения данных'
             raise json.decoder.JSONDecodeError(f'{msg}')
     raise ApiCodeError
@@ -106,7 +106,9 @@ def parse_status(homework):
     homework_status = homework.get('status')
 
     if homework_name is None:
-        raise ValueError("Отсутствует ключ 'homework_name' в словаре homework.")
+        raise ValueError(
+            "Отсутствует ключ 'homework_name' в словаре homework."
+        )
     if homework_status is None:
         raise ValueError("Отсутствует ключ 'status' в словаре homework.")
 
