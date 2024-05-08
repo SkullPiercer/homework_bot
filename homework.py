@@ -83,7 +83,6 @@ def get_api_answer(timestamp):
         raise ApiCodeError
 
 
-
 def check_response(response):
     """Проверяет ответ API на соответствие."""
     if not isinstance(response, dict):
@@ -106,11 +105,19 @@ def check_response(response):
 
 def parse_status(homework):
     """Извлекает из информации статус работы."""
-    try:
-        homework_name = homework['homework_name']
-        verdict = HOMEWORK_VERDICTS[homework.get('status')]
-    except KeyError:
-        raise 'Неверный статус домашней работы'
+    homework_name = homework.get('homework_name')
+    homework_status = homework.get('status')
+
+    if homework_name is None:
+        raise ValueError("Отсутствует ключ 'homework_name' в словаре homework.")
+    if homework_status is None:
+        raise ValueError("Отсутствует ключ 'status' в словаре homework.")
+
+    if homework_status not in HOMEWORK_VERDICTS:
+        raise ValueError(f'Неверный статус домашней работы: {homework_status}')
+
+    verdict = HOMEWORK_VERDICTS[homework_status]
+
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
