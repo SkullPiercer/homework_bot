@@ -37,14 +37,18 @@ HOMEWORK_VERDICTS = {
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-    tokens = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
-    for token in tokens:
-        if token is None:
-            logging.critical(
-                f"Отсутствует обязательная переменная окружения '{token}'"
+    tokens = {
+        'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
+        'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
+        'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID
+    }
+    result_messages = []
+    for k, v in tokens.items():
+        if v is None:
+            result_messages.append(
+                f"Отсутствует обязательная переменная окружения '{k}'"
             )
-            return False
-    return True
+    return result_messages
 
 
 def send_message(bot, message):
@@ -123,7 +127,8 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
-    if not check_tokens():
+    if check_tokens():
+        logging.critical("Токены не прошли валидацию")
         sys.exit("Ошибка: Токены не прошли валидацию")
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
