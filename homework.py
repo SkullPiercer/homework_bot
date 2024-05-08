@@ -53,6 +53,7 @@ def check_tokens():
 
 def send_message(bot, message):
     """Отправляет сообщение в Telegram-чат, определяемый константой."""
+    logging.debug('Начало отправки сообщения в Telegram')
     try:
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         logging.debug('Удачная отправка сообщения')
