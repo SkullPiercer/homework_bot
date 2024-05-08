@@ -1,10 +1,11 @@
 import json
 import logging
 import os
-import requests
+import sys
 import time
 from http import HTTPStatus
 
+import requests
 from dotenv import load_dotenv
 from telebot import TeleBot
 
@@ -23,6 +24,7 @@ TELEGRAM_TOKEN = os.getenv('TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('CHAT_ID')
 
 RETRY_PERIOD = 600
+TIMEOUT = 10
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
@@ -61,23 +63,25 @@ def get_api_answer(timestamp):
             ENDPOINT,
             headers=HEADERS,
             params={'from_date': timestamp},
-            timeout=10
+            timeout=TIMEOUT
         )
-        if response.status_code == HTTPStatus.OK:
-            logging.info("API недоступно")
-            try:
-                response = response.json()
-                logging.info('Данные успешно получены')
-                return response
-            except json.decoder.JSONDecodeError as err:
-                msg = 'Ошибка получения данных'
-                logging.error('%s: %s', msg, err)
-                raise json.decoder.JSONDecodeError(f'{msg}')
-        else:
-            logging.error('Неверные данные ключей ответа')
-            raise ApiCodeError
     except requests.exceptions.RequestException:
         logging.error('API недоступно')
+
+    if response.status_code == HTTPStatus.OK:
+        logging.info("API доступно")
+        try:
+            response = response.json()
+            logging.info('Данные успешно получены')
+            return response
+        except json.decoder.JSONDecodeError as err:
+            msg = 'Ошибка получения данных'
+            logging.error('%s: %s', msg, err)
+            raise json.decoder.JSONDecodeError(f'{msg}')
+    else:
+        logging.error('Неверные данные ключей ответа')
+        raise ApiCodeError
+
 
 
 def check_response(response):
@@ -90,9 +94,6 @@ def check_response(response):
 
     if not isinstance(response['homeworks'], list):
         raise TypeError("'homeworks' в ответе должен быть списком")
-
-    if not response['homeworks']:
-        raise ValueError("Список 'homeworks' не должен быть пустым")
 
     for data in ('status', 'homework_name'):
         if data not in response['homeworks'][0]:
@@ -116,7 +117,7 @@ def parse_status(homework):
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
-        return
+        sys.exit("Ошибка: Токены не прошли валидацию")
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = 0
