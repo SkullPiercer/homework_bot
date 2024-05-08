@@ -81,11 +81,8 @@ def get_api_answer(timestamp):
             return response
         except json.decoder.JSONDecodeError as err:
             msg = 'Ошибка получения данных'
-            logging.error('%s: %s', msg, err)
             raise json.decoder.JSONDecodeError(f'{msg}')
-    else:
-        logging.error('Неверные данные ключей ответа')
-        raise ApiCodeError
+    raise ApiCodeError
 
 
 def check_response(response):
