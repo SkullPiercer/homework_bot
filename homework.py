@@ -98,12 +98,6 @@ def check_response(response):
     if not isinstance(response['homeworks'], list):
         raise TypeError("'homeworks' в ответе должен быть списком")
 
-    for data in ('status', 'homework_name'):
-        if data not in response['homeworks'][0]:
-            raise ValueError(
-                f"Отсутствует ожидаемый ключ '{data}' в ответе API"
-            )
-
     return True
 
 
