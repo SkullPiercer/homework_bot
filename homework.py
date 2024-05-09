@@ -44,10 +44,10 @@ def check_tokens():
         'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID
     }
     result_messages = []
-    for k, v in tokens.items():
-        if v is None:
+    for token, value in tokens.items():
+        if value is None:
             result_messages.append(
-                f"Отсутствует обязательная переменная окружения '{k}'"
+                f"Отсутствует обязательная переменная окружения '{token}'"
             )
     return result_messages
 
@@ -72,10 +72,10 @@ def get_api_answer(timestamp):
             timeout=TIMEOUT
         )
     except requests.exceptions.RequestException:
-        logging.error('API недоступно')
+        raise ApiCodeError('API недоступно')
 
     if response.status_code == HTTPStatus.OK:
-        logging.info("API доступно")
+        logging.info('API доступно')
         try:
             response = response.json()
             logging.info('Данные успешно получены')
@@ -89,10 +89,10 @@ def get_api_answer(timestamp):
 def check_response(response):
     """Проверяет ответ API на соответствие."""
     if not isinstance(response, dict):
-        raise TypeError("Ответ API должен быть словарем")
+        raise TypeError('Ответ API должен быть словарем')
 
     if 'homeworks' not in response:
-        raise ApiCodeError("Ответ не содержит 'homeworks'")
+        raise KeyError("Ответ не содержит 'homeworks'")
 
     if not isinstance(response['homeworks'], list):
         raise TypeError("'homeworks' в ответе должен быть списком")
@@ -123,8 +123,8 @@ def parse_status(homework):
 def main():
     """Основная логика работы бота."""
     if check_tokens():
-        logging.critical("Токены не прошли валидацию")
-        sys.exit("Ошибка: Токены не прошли валидацию")
+        logging.critical('Токены не прошли валидацию')
+        sys.exit('Ошибка: Токены не прошли валидацию')
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = 0
