@@ -136,12 +136,13 @@ def main():
             if check_response(api_response):
                 if not api_response['homeworks']:
                     logging.debug('Получен пустой список с дз')
-                last_homework = api_response['homeworks'][0]
-                current_status = parse_status(last_homework)
-                if last_status != current_status:
-                    send_message(bot, current_status)
-                    last_status = current_status
-                timestamp = int(time.time())
+                else:
+                    last_homework = api_response['homeworks'][0]
+                    current_status = parse_status(last_homework)
+                    if last_status != current_status:
+                        send_message(bot, current_status)
+                        last_status = current_status
+            timestamp = int(time.time())
         except Exception as error:
             logging.error(f'Сбой в работе программы: {error}')
         finally:
